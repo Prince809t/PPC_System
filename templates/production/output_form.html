@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}Nayi Output — PPC System{% endblock %}
+{% block page_title %}Nayi Output Line{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-1"><i class="bi bi-plus-circle text-primary"></i> Nayi Output Line</h5>
+            <p class="mb-0 text-muted" style="font-size:0.88rem;">
+                Jab bhi naya order ya naya operation shuru karo, nayi line banao.
+            </p>
+        </div>
+        <a href="{% url 'my_output_list' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+
+    <!-- SECTION 1: Kaam ki Info -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-1-circle-fill"></i> Kaam Ki Info
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4 col-6">
+                    <label class="form-label">Date *</label>
+                    <input type="date" name="date" class="form-control" value="{{ today }}" required>
+                </div>
+                {% if not is_operator %}
+                <div class="col-md-4 col-6">
+                    <label class="form-label">Operator *</label>
+                    <select name="operator" class="form-select" required>
+                        <option value="">-- Operator chuno --</option>
+                        {% for o in operators %}
+                        <option value="{{ o.id }}">{{ o.full_name }} ({{ o.employee_code }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <div class="col-md-4 col-12">
+                    <label class="form-label">Order / Sample No. *</label>
+                    <select name="order" class="form-select" required>
+                        <option value="">-- Order chuno --</option>
+                        {% for o in orders %}
+                        <option value="{{ o.id }}">{{ o.order_no }} — {{ o.style }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 col-12">
+                    <label class="form-label">Operation</label>
+                    <select name="operation" class="form-select">
+                        <option value="">-- Operation chuno --</option>
+                        {% for op in operations %}
+                        <option value="{{ op.id }}">{{ op.name }} ({{ op.get_section_display }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 2: Time & Output -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-2-circle-fill"></i> Time & Output
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3 col-6">
+                    <label class="form-label">Start Time *</label>
+                    <input type="time" name="start_time" class="form-control" required>
+                </div>
+                <div class="col-md-3 col-6">
+                    <label class="form-label">End Time *</label>
+                    <input type="time" name="end_time" class="form-control" required>
+                </div>
+                <div class="col-md-3 col-12">
+                    <label class="form-label">Pieces Completed *</label>
+                    <input type="number" name="pieces_completed" class="form-control" value="0" min="0" required>
+                </div>
+            </div>
+            <div class="alert alert-info mt-3 mb-0 py-2" style="font-size:0.85rem;">
+                <i class="bi bi-info-circle"></i>
+                End time, Start time se bada hona chahiye. Pieces negative nahi ho sakte.
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="card">
+        <div class="card-body d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-save"></i> Save Karo
+            </button>
+            <a href="{% url 'my_output_list' %}" class="btn btn-secondary btn-lg">Cancel</a>
+        </div>
+    </div>
+
+</form>
+
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Orders — PPC System{% endblock %}
+{% block page_title %}Orders{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-body d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h5 class="mb-1"><i class="bi bi-box-seam-fill text-primary"></i> Orders</h5>
+            <p class="mb-0 text-muted" style="font-size:0.88rem;">
+                Factory ke saare orders — reports isi number pe match karti hain.
+            </p>
+        </div>
+        <a href="{% url 'order_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Naya Order
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-primary text-white d-flex justify-content-between">
+        <span><i class="bi bi-list-check"></i> All Orders</span>
+        <span class="badge bg-light text-dark">{{ orders|length }}</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ORDER / SAMPLE NO.</th>
+                        <th>STYLE</th>
+                        <th>BUYER</th>
+                        <th class="text-end">QTY</th>
+                        <th>STATUS</th>
+                        <th>DATE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in orders %}
+                    <tr>
+                        <td><strong>{{ o.order_no }}</strong></td>
+                        <td>{{ o.style|default:"—" }}</td>
+                        <td>{{ o.buyer|default:"—" }}</td>
+                        <td class="text-end">{{ o.order_qty }}</td>
+                        <td>
+                            {% if o.status == 'PENDING' %}<span class="badge bg-secondary">Pending</span>
+                            {% elif o.status == 'IN_PROGRESS' %}<span class="badge bg-primary">In Progress</span>
+                            {% elif o.status == 'COMPLETED' %}<span class="badge bg-success">Completed</span>
+                            {% else %}<span class="badge bg-danger">Cancelled</span>{% endif %}
+                        </td>
+                        <td>{{ o.order_date|default:"—" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <h6>Koi order nahi</h6>
+                                <p class="text-muted mb-2">Pehla order banao.</p>
+                                <a href="{% url 'order_create' %}" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-plus-circle"></i> Naya Order
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

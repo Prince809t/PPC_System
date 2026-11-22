@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard — PPC System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h3 class="mb-4">
+        <i class="bi bi-speedometer2"></i> Dashboard
+    </h3>
+
+    <div class="alert alert-info">
+        <h5>Welcome, {{ user.username }}!</h5>
+        <p class="mb-0">
+            Tumhara role: <strong>{{ user.role }}</strong>
+        </p>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="text-muted">Project Status</h6>
+                    <p class="mb-0">
+                        Phase 1 (Foundation) chal raha hai. Aage ke phases me
+                        Teams, Operators, Output, Quality Reports sab yahan aayenge.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

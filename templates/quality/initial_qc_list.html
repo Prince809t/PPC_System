@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Initial Quality Reports — PPC System{% endblock %}
+{% block page_title %}Initial Quality Reports (PPC-04){% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-body d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h5 class="mb-1"><i class="bi bi-search text-warning"></i> Initial Quality Reports</h5>
+            <p class="mb-0 text-muted" style="font-size:0.88rem;">
+                Silai ke baad, finishing se pehle inspection (PPC-04).
+            </p>
+        </div>
+        <a href="{% url 'initial_qc_create' %}" class="btn btn-warning text-dark">
+            <i class="bi bi-plus-circle"></i> Nayi Report
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-warning text-dark d-flex justify-content-between">
+        <span><i class="bi bi-list-check"></i> Saari Initial Reports</span>
+        <span class="badge bg-dark">{{ reports|length }}</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>DATE</th>
+                        <th>ORDER</th>
+                        <th>STYLE</th>
+                        <th>TEAM</th>
+                        <th>QC</th>
+                        <th class="text-end">CHECKED</th>
+                        <th class="text-end">DEFECTIVE</th>
+                        <th class="text-end">DEFECT RATE</th>
+                        <th style="width:70px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in reports %}
+                    <tr>
+                        <td>{{ r.date }}</td>
+                        <td><strong>{{ r.order.order_no }}</strong></td>
+                        <td>{{ r.style|default:"—" }}</td>
+                        <td>{% if r.team %}{{ r.team.name }}{% else %}—{% endif %}</td>
+                        <td>{% if r.qc_inspector %}{{ r.qc_inspector.username }}{% else %}—{% endif %}</td>
+                        <td class="text-end">{{ r.total_qty_checked }}</td>
+                        <td class="text-end text-danger">{{ r.total_qty_defective }}</td>
+                        <td class="text-end">
+                            <span class="badge bg-danger">{{ r.defect_rate }}%</span>
+                        </td>
+                        <td>
+                            <a href="{% url 'initial_qc_detail' r.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <h6>Koi report nahi</h6>
+                                <p class="text-muted mb-2">Pehli PPC-04 report banao.</p>
+                                <a href="{% url 'initial_qc_create' %}" class="btn btn-warning btn-sm text-dark">
+                                    <i class="bi bi-plus-circle"></i> Nayi Report
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

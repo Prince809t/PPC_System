@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Order Quality — PPC System{% endblock %}
+{% block page_title %}Order Quality Summary{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="mb-1"><i class="bi bi-clipboard-data-fill text-primary"></i> Order Quality Summary</h5>
+        <p class="mb-0 text-muted" style="font-size:0.88rem;">
+            Har order ka PPC-04 + PPC-05 combined summary.
+        </p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-primary text-white d-flex justify-content-between">
+        <span><i class="bi bi-list-check"></i> Orders</span>
+        <span class="badge bg-light text-dark">{{ order_summaries|length }}</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ORDER</th>
+                        <th class="text-end">CHECKED</th>
+                        <th class="text-end">DEF. (INITIAL)</th>
+                        <th class="text-end">REWORK SENT</th>
+                        <th class="text-end">REJECTED</th>
+                        <th class="text-end">DEF. (FINAL)</th>
+                        <th class="text-end">REPEAT</th>
+                        <th class="text-end">REWORK HRS</th>
+                        <th class="text-end">PASSED</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in order_summaries %}
+                    <tr>
+                        <td>
+                            <strong>{{ s.order.order_no }}</strong><br>
+                            <small class="text-muted">{{ s.order.style|default:"—" }}</small>
+                        </td>
+                        <td class="text-end">{{ s.total_checked }}</td>
+                        <td class="text-end text-danger">{{ s.total_defective_initial }}</td>
+                        <td class="text-end">{{ s.total_rework_sent }}</td>
+                        <td class="text-end text-danger">{{ s.total_rejected }}</td>
+                        <td class="text-end text-danger">{{ s.total_defective_final }}</td>
+                        <td class="text-end text-warning">{{ s.total_repeat_faults }}</td>
+                        <td class="text-end">
+                            <span class="badge bg-dark">{{ s.total_rework_hours }} hrs</span>
+                        </td>
+                        <td class="text-end text-success"><strong>{{ s.total_passed_packing }}</strong></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <h6>Koi order data nahi</h6>
+                                <p class="text-muted mb-0">Pehle order aur QC reports bharo.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

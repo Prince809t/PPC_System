@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% block title %}PPC-04 — {{ report.order.order_no }}{% endblock %}
+{% block page_title %}Initial Quality Report (PPC-04){% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="card">
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-1"><i class="bi bi-file-earmark-text text-warning"></i> PPC-04 — {{ report.order.order_no }}</h5>
+            <p class="mb-0 text-muted" style="font-size:0.88rem;">
+                Silai ke baad, finishing se pehle inspection
+            </p>
+        </div>
+        <a href="{% url 'initial_qc_list' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<!-- Report Header Info -->
+<div class="card">
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-2 col-6 mb-2">
+                <small class="text-muted d-block">ORDER</small>
+                <strong>{{ report.order.order_no }}</strong>
+            </div>
+            <div class="col-md-2 col-6 mb-2">
+                <small class="text-muted d-block">STYLE</small>
+                <strong>{{ report.style|default:"—" }}</strong>
+            </div>
+            <div class="col-md-2 col-6 mb-2">
+                <small class="text-muted d-block">TEAM</small>
+                <strong>{% if report.team %}{{ report.team.name }}{% else %}—{% endif %}</strong>
+            </div>
+            <div class="col-md-2 col-6 mb-2">
+                <small class="text-muted d-block">DATE</small>
+                <strong>{{ report.date }}</strong>
+            </div>
+            <div class="col-md-2 col-6 mb-2">
+                <small class="text-muted d-block">QC INSPECTOR</small>
+                <strong>{% if report.qc_inspector %}{{ report.qc_inspector.username }}{% else %}—{% endif %}</strong>
+            </div>
+            <div class="col-md-2 col-6 mb-2">
+                <small class="text-muted d-block">QTY PRESENTED</small>
+                <strong>{{ report.qty_presented }}</strong>
+            </div>
+        </div>
+        <hr>
+        <div class="row text-center">
+            <div class="col-md-4 col-6">
+                <small class="text-muted d-block">INSPECTION FROM</small>
+                <strong>{{ report.inspection_from|time:"H:i" }}</strong>
+            </div>
+            <div class="col-md-4 col-6">
+                <small class="text-muted d-block">INSPECTION TO</small>
+                <strong>{{ report.inspection_to|time:"H:i" }}</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fault Log -->
+<div class="card">
+    <div class="card-header bg-danger text-white d-flex justify-content-between">
+        <span><i class="bi bi-exclamation-triangle"></i> FAULT LOG</span>
+        <span class="badge bg-light text-dark">{{ faults|length }} Faults</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-bordered mb-0">
+                <thead style="background:#eef2f7;">
+                    <tr>
+                        <th>TIME</th>
+                        <th>BUNDLE / LOT NO.</th>
+                        <th>FAULT CODE</th>
+                        <th>DESCRIPTION</th>
+                        <th>OPERATION</th>
+                        <th>OPERATOR AT FAULT</th>
+                        <th class="text-end">QTY</th>
+                        <th>R / RJ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in faults %}
+                    <tr>
+                        <td>{{ f.time|time:"H:i" }}</td>
+                        <td>{{ f.bundle_lot_no }}</td>
+                        <td>
+                            {% if f.fault_code %}
+                                <span class="badge bg-dark">{{ f.fault_code.code }}</span>
+                                {{ f.fault_code.name }}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>{{ f.fault_description|default:"—" }}</td>
+                        <td>{% if f.operation %}{{ f.operation.name }}{% else %}—{% endif %}</td>
+                        <td>
+                            {% if f.operator_at_fault %}
+                                <strong>{{ f.operator_at_fault.full_name }}</strong>
+                            {% else %}—{% endif %}
+                        </td>
+                        <td class="text-end"><strong>{{ f.qty }}</strong></td>
+                        <td>
+                            {% if f.action == 'R' %}<span class="badge bg-primary">R</span>
+                            {% else %}<span class="badge bg-danger">RJ</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" class="text-center text-muted py-3">Koi fault nahi mila.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Summary -->
+<div class="card">
+    <div class="card-header bg-secondary text-white">
+        <i class="bi bi-clipboard-data"></i> INSPECTION SUMMARY
+    </div>
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md-3 col-6">
+                <div class="border rounded p-3">
+                    <small class="text-muted d-block">A. Total Checked</small>
+                    <h4 class="mb-0">{{ report.total_qty_checked }}</h4>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="border rounded p-3">
+                    <small class="text-muted d-block">B. Total Passed</small>
+                    <h4 class="mb-0 text-success">{{ report.total_qty_passed }}</h4>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="border rounded p-3">
+                    <small class="text-muted d-block">C. Total Defective</small>
+                    <h4 class="mb-0 text-danger">{{ report.total_qty_defective }}</h4>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="border rounded p-3">
+                    <small class="text-muted d-block">D. Defect Rate</small>
+                    <h4 class="mb-0 text-danger">{{ report.defect_rate }}%</h4>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="border rounded p-3">
+                    <small class="text-muted d-block">E. Sent for Rework</small>
+                    <h4 class="mb-0 text-primary">{{ report.qty_sent_for_rework }}</h4>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="border rounded p-3">
+                    <small class="text-muted d-block">F. Qty Rejected</small>
+                    <h4 class="mb-0 text-danger">{{ report.qty_rejected }}</h4>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="border rounded p-3">
+                    <small class="text-muted d-block">G. Rework Sent</small>
+                    <h6 class="mb-0">{% if report.rework_sent_datetime %}{{ report.rework_sent_datetime|date:"d M H:i" }}{% else %}—{% endif %}</h6>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="border rounded p-3">
+                    <small class="text-muted d-block">H. Most Frequent Fault</small>
+                    <h6 class="mb-0">
+                        {% if report.most_frequent_fault_code %}
+                            {{ report.most_frequent_fault_code.code }} — {{ report.most_frequent_fault_code.name }}
+                        {% else %}—{% endif %}
+                    </h6>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

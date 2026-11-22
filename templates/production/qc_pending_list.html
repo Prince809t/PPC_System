@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}QC Pending — PPC System{% endblock %}
+{% block page_title %}QC Pending Outputs{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="mb-1"><i class="bi bi-clipboard-check-fill text-warning"></i> QC Pending Outputs</h5>
+        <p class="mb-0 text-muted" style="font-size:0.88rem;">
+            Yeh outputs abhi QC check nahi hue. "Mark as Checked" dabao jab pieces check kar lo.
+        </p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-warning text-dark d-flex justify-content-between">
+        <span><i class="bi bi-hourglass-split"></i> Pending List</span>
+        <span class="badge bg-dark">{{ pending|length }} Pending</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>DATE</th>
+                        <th>OPERATOR</th>
+                        <th>ORDER</th>
+                        <th>OPERATION</th>
+                        <th class="text-end">PIECES</th>
+                        <th style="width:180px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in pending %}
+                    <tr>
+                        <td>{{ log.date }}</td>
+                        <td>
+                            <strong>{{ log.operator.full_name }}</strong><br>
+                            <small class="text-muted">{{ log.operator.employee_code }}</small>
+                        </td>
+                        <td><strong>{{ log.order.order_no }}</strong></td>
+                        <td>{% if log.operation %}{{ log.operation.name }}{% else %}—{% endif %}</td>
+                        <td class="text-end"><strong style="color:#1e5fa8;">{{ log.pieces_completed }}</strong></td>
+                        <td>
+                            <form method="post" action="{% url 'qc_mark_checked' log.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="bi bi-check-circle"></i> Mark as Checked
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <i class="bi bi-check-circle-fill" style="color:#198754;"></i>
+                                <h6>Sab outputs checked hain</h6>
+                                <p class="text-muted mb-0">Shabaash! Koi pending QC nahi.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

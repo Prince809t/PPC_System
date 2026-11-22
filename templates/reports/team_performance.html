@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Team Performance — PPC System{% endblock %}
+{% block page_title %}Team Performance Report{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="mb-1"><i class="bi bi-people-fill text-primary"></i> Team Performance</h5>
+        <p class="mb-0 text-muted" style="font-size:0.88rem;">
+            Har team ka aggregate performance.
+        </p>
+    </div>
+</div>
+
+<!-- Filter -->
+<div class="card">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4 col-6">
+                <label class="form-label">Start Date</label>
+                <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+            </div>
+            <div class="col-md-4 col-6">
+                <label class="form-label">End Date</label>
+                <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+            </div>
+            <div class="col-md-4 col-12">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Teams Grid -->
+<div class="row g-3">
+    {% for tp in team_perfs %}
+    <div class="col-md-6 col-12">
+        <div class="card" style="height:100%;">
+            <div class="card-header bg-primary text-white d-flex justify-content-between">
+                <span><i class="bi bi-people-fill"></i> {{ tp.team.name }}</span>
+                <span class="badge bg-light text-dark">{{ tp.operator_count }} Operators</span>
+            </div>
+            <div class="card-body">
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <small class="text-muted d-block">Avg Score</small>
+                        <h4 style="color:#1e5fa8;">{{ tp.avg_score }}</h4>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-muted d-block">Total Pieces</small>
+                        <h4>{{ tp.total_pieces }}</h4>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-muted d-block">Total Defects</small>
+                        <h4 class="text-danger">{{ tp.total_defects }}</h4>
+                    </div>
+                </div>
+                <hr>
+                <h6 style="font-size:0.85rem;color:#555;">Operators:</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th class="text-end">Pieces</th>
+                                <th class="text-end">Score</th>
+                                <th style="width:60px;">Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in tp.operator_scores %}
+                            <tr>
+                                <td>{{ p.operator.full_name }}</td>
+                                <td class="text-end">{{ p.total_pieces }}</td>
+                                <td class="text-end"><strong>{{ p.score }}</strong></td>
+                                <td><span class="badge bg-{{ p.grade_color }}">{{ p.grade }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <h6>Koi team data nahi</h6>
+                    <p class="text-muted mb-0">Pehle teams aur operators add karo.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

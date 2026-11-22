@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% block title %}Nayi PPC-05 Report{% endblock %}
+{% block page_title %}Nayi Final Quality Report (PPC-05){% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-1"><i class="bi bi-plus-circle text-warning"></i> Nayi Final QC Report</h5>
+            <p class="mb-0 text-muted" style="font-size:0.88rem;">
+                PPC-05 — Packing se pehle final inspection. Boxes A, B, I PPC-04 se copy honge.
+            </p>
+        </div>
+        <a href="{% url 'final_qc_list' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<form method="post" id="qcForm">
+    {% csrf_token %}
+
+    <!-- HEADER -->
+    <div class="card">
+        <div class="card-header bg-warning text-dark"><i class="bi bi-1-circle-fill"></i> Header</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Order / Sample No. *</label>
+                    <select name="order" class="form-select" required>
+                        <option value="">-- Order chuno --</option>
+                        {% for o in orders %}
+                        <option value="{{ o.id }}">{{ o.order_no }} — {{ o.style }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Team</label>
+                    <select name="team" class="form-select">
+                        <option value="">-- Team --</option>
+                        {% for t in teams %}
+                        <option value="{{ t.id }}">{{ t.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Date *</label>
+                    <input type="date" name="date" class="form-control" value="{{ today }}" required>
+                </div>
+                <div class="col-md-3 col-6">
+                    <label class="form-label">Inspection From *</label>
+                    <input type="time" name="inspection_from" class="form-control" required>
+                </div>
+                <div class="col-md-3 col-6">
+                    <label class="form-label">Inspection To *</label>
+                    <input type="time" name="inspection_to" class="form-control" required>
+                </div>
+                <div class="col-md-3 col-6">
+                    <label class="form-label">D. Qty Presented at Final *</label>
+                    <input type="number" name="box_d_qty_presented_final" class="form-control" value="0" min="0" required>
+                </div>
+                <div class="col-md-3 col-12">
+                    <label class="form-label">Link PPC-04 (A, B, I auto-copy)</label>
+                    <select name="initial_report" class="form-select">
+                        <option value="">-- PPC-04 chuno --</option>
+                        {% for ir in initial_reports %}
+                        <option value="{{ ir.id }}">{{ ir.order.order_no }} — {{ ir.date }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAULT LOG -->
+    <div class="card">
+        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-exclamation-triangle"></i> Fault Log — faults still present at packing stage</span>
+            <button type="button" class="btn btn-sm btn-light" onclick="addFaultLine()">
+                <i class="bi bi-plus"></i> Add Line
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered mb-0">
+                    <thead style="background:#eef2f7;">
+                        <tr>
+                            <th style="width:75px;">TIME</th>
+                            <th style="width:100px;">BUNDLE / LOT</th>
+                            <th style="width:120px;">FAULT CODE</th>
+                            <th>DESCRIPTION</th>
+                            <th style="width:120px;">OPERATION</th>
+                            <th style="width:130px;">OPERATOR</th>
+                            <th style="width:60px;">QTY</th>
+                            <th style="width:80px;">REPEAT?</th>
+                            <th style="width:60px;">R / RJ</th>
+                            <th style="width:45px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="faultBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- REWORK & RECOVERY -->
+    <div class="card">
+        <div class="card-header bg-dark text-white">
+            <i class="bi bi-arrow-repeat"></i> Rework & Recovery
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3 col-6"><label class="form-label">A. Qty Checked at Initial</label><input type="text" class="form-control" value="Auto (PPC-04 se)" disabled style="background:#f8f9ff;"></div>
+                <div class="col-md-3 col-6"><label class="form-label">B. Qty Defective at Initial</label><input type="text" class="form-control" value="Auto (PPC-04 se)" disabled style="background:#f8f9ff;"></div>
+                <div class="col-md-3 col-6"><label class="form-label">C. Initial Defect Rate %</label><input type="text" class="form-control" value="Auto (B ÷ A)" disabled style="background:#f8f9ff;"></div>
+                <div class="col-md-3 col-6"><label class="form-label">D. Qty Presented at Final</label><input type="text" class="form-control" value="Upar bhara" disabled style="background:#f8f9ff;"></div>
+
+                <div class="col-md-3 col-6"><label class="form-label">E. Qty Defective at Final</label><input type="text" class="form-control" value="Auto (fault lines)" disabled style="background:#f8f9ff;"></div>
+                <div class="col-md-3 col-6"><label class="form-label">F. Final Defect Rate %</label><input type="text" class="form-control" value="Auto (E ÷ D)" disabled style="background:#f8f9ff;"></div>
+                <div class="col-md-3 col-6"><label class="form-label">G. Defects Cleared</label><input type="text" class="form-control" value="Auto (B − E)" disabled style="background:#f8f9ff;"></div>
+                <div class="col-md-3 col-6"><label class="form-label">H. Repeat Faults</label><input type="text" class="form-control" value="Auto (Y lines)" disabled style="background:#f8f9ff;"></div>
+
+                <div class="col-md-4 col-6">
+                    <label class="form-label">I. Rework Sent — Date & Time</label>
+                    <input type="datetime-local" name="box_i_rework_sent" class="form-control">
+                </div>
+                <div class="col-md-4 col-6">
+                    <label class="form-label">J. Rework Complete — Date & Time</label>
+                    <input type="datetime-local" name="box_j_rework_complete" class="form-control">
+                </div>
+                <div class="col-md-4 col-12">
+                    <label class="form-label text-danger fw-bold">K. Total Rework Hours (J − I)</label>
+                    <input type="text" class="form-control" value="Auto — TRUE COST OF POOR QUALITY" disabled style="background:#fff3cd;font-weight:600;">
+                </div>
+
+                <div class="col-md-3 col-6"><label class="form-label">L. Qty Passed to Packing</label><input type="text" class="form-control" value="Auto (D − E)" disabled style="background:#f8f9ff;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body d-flex gap-2">
+            <button type="submit" class="btn btn-warning btn-lg text-dark">
+                <i class="bi bi-save"></i> Save PPC-05 Report
+            </button>
+            <a href="{% url 'final_qc_list' %}" class="btn btn-secondary btn-lg">Cancel</a>
+        </div>
+    </div>
+
+</form>
+
+<!-- Fault Line Template -->
+<template id="faultLineTemplate">
+    <tr>
+        <td><input type="time" name="fault_time" class="form-control form-control-sm"></td>
+        <td><input type="text" name="fault_bundle" class="form-control form-control-sm" placeholder="Bundle #"></td>
+        <td>
+            <select name="fault_code" class="form-select form-select-sm">
+                <option value="">-- Code --</option>
+                {% for fc in fault_codes %}
+                <option value="{{ fc.id }}">{{ fc.code }} — {{ fc.name }}</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td><input type="text" name="fault_description" class="form-control form-control-sm"></td>
+        <td>
+            <select name="fault_operation" class="form-select form-select-sm">
+                <option value="">--</option>
+                {% for op in operations %}
+                <option value="{{ op.id }}">{{ op.name }}</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td>
+            <select name="fault_operator" class="form-select form-select-sm">
+                <option value="">--</option>
+                {% for o in operators %}
+                <option value="{{ o.id }}">{{ o.full_name }}</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td><input type="number" name="fault_qty" class="form-control form-control-sm" value="0" min="0"></td>
+        <td>
+            <select name="fault_repeat" class="form-select form-select-sm">
+                <option value="N">N</option>
+                <option value="Y">Y</option>
+            </select>
+        </td>
+        <td>
+            <select name="fault_action" class="form-select form-select-sm">
+                <option value="R">R</option>
+                <option value="RJ">RJ</option>
+            </select>
+        </td>
+        <td>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('tr').remove()">
+                <i class="bi bi-x"></i>
+            </button>
+        </td>
+    </tr>
+</template>
+
+<script>
+function addFaultLine() {
+    const tbody = document.getElementById('faultBody');
+    const template = document.getElementById('faultLineTemplate');
+    tbody.appendChild(template.content.cloneNode(true));
+}
+document.addEventListener('DOMContentLoaded', function() { addFaultLine(); });
+</script>
+
+{% endblock %}

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PPC System{% endblock %}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --sidebar-width: 240px;
+            --sidebar-collapsed: 0px;
+            --primary: #1e5fa8;
+            --primary-dark: #174a85;
+        }
+        * { font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background-color: #f4f6f9; margin: 0; overflow-x: hidden; }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(180deg, #1e5fa8 0%, #174a85 100%);
+            color: white;
+            overflow-y: auto;
+            z-index: 1050;
+            transition: transform 0.3s ease;
+        }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 5px; }
+
+        .sidebar-brand {
+            padding: 18px 20px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .sidebar-brand .brand-text { display: flex; align-items: center; }
+        .sidebar-brand i.bi-gear-fill { color: #ffc107; margin-right: 8px; font-size: 1.4rem; }
+        .sidebar-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.3rem;
+            display: none;
+            cursor: pointer;
+        }
+
+        .sidebar-user {
+            padding: 15px 20px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-user .name { font-weight: 600; font-size: 0.95rem; }
+        .sidebar-user .role { font-size: 0.75rem; opacity: 0.7; }
+
+        .sidebar-nav { padding: 8px 0; }
+        .sidebar-nav .nav-section {
+            padding: 14px 20px 6px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.5;
+            font-weight: 600;
+        }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .sidebar-nav a:hover {
+            background: rgba(255,255,255,0.08);
+            color: white;
+            border-left-color: #ffc107;
+        }
+        .sidebar-nav a i { width: 22px; margin-right: 10px; font-size: 1rem; }
+
+        /* ===== OVERLAY (Mobile) ===== */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1040;
+        }
+        .sidebar-overlay.show { display: block; }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.3s ease;
+        }
+        .topbar {
+            background: white;
+            padding: 12px 24px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .topbar-left { display: flex; align-items: center; }
+        .topbar h5 { margin: 0; color: #333; font-weight: 600; font-size: 1.05rem; }
+
+        .hamburger-btn {
+            background: #f4f6f9;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-right: 12px;
+            font-size: 1.2rem;
+            color: #333;
+            transition: all 0.2s;
+        }
+        .hamburger-btn:hover { background: #e9ecef; }
+
+        .content-area { padding: 24px; flex: 1; }
+
+        /* ===== CARDS ===== */
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            border-radius: 10px 10px 0 0 !important;
+            font-weight: 600;
+            font-size: 0.92rem;
+            padding: 12px 18px;
+        }
+        .card-body { padding: 18px; }
+
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            transition: transform 0.2s;
+            height: 100%;
+        }
+        .stat-card:hover { transform: translateY(-3px); }
+        .stat-card i { font-size: 2rem; }
+        .stat-card h3 { margin: 10px 0 5px; font-weight: 700; font-size: 1.6rem; }
+        .stat-card small { color: #6c757d; font-size: 0.82rem; }
+
+        /* ===== TABLES ===== */
+        .table { font-size: 0.9rem; margin-bottom: 0; }
+        .table thead th {
+            background: #eef2f7;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #555;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+            padding: 12px;
+            white-space: nowrap;
+        }
+        .table tbody td { padding: 12px; vertical-align: middle; }
+        .table tbody tr:hover { background: #f8f9ff; }
+
+        /* ===== BUTTONS ===== */
+        .btn-primary { background-color: var(--primary); border-color: var(--primary); }
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+        .btn { border-radius: 6px; font-size: 0.88rem; font-weight: 500; }
+
+        /* ===== FORMS ===== */
+        .form-label {
+            font-weight: 600;
+            font-size: 0.82rem;
+            color: #444;
+            margin-bottom: 4px;
+        }
+        .form-control, .form-select {
+            border-radius: 6px;
+            font-size: 0.9rem;
+            padding: 8px 12px;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.15rem rgba(30,95,168,0.15);
+        }
+
+        .alert { border-radius: 8px; border: none; font-size: 0.9rem; }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #6c757d;
+        }
+        .empty-state i { font-size: 3.5rem; opacity: 0.3; margin-bottom: 15px; display: block; }
+
+        /* ===== MOBILE VIEW ===== */
+        @media (max-width: 991px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .sidebar-close { display: block; }
+            .main-content { margin-left: 0; }
+            .content-area { padding: 15px; }
+            .topbar { padding: 10px 15px; }
+            .topbar h5 { font-size: 0.95rem; }
+        }
+
+        /* ===== DESKTOP COLLAPSED STATE ===== */
+        @media (min-width: 992px) {
+            .sidebar.collapsed {
+                transform: translateX(-100%);
+            }
+            .main-content.expanded {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-text">
+            <i class="bi bi-gear-fill"></i> PPC System
+        </div>
+        <button class="sidebar-close" onclick="toggleSidebar()">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <div class="sidebar-user">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-person-circle me-2" style="font-size:2rem;opacity:0.8;"></i>
+            <div>
+                <div class="name">{{ user.username }}</div>
+                <div class="role">{{ user.role }}</div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+
+        {% if user.role == 'ADMIN' or user.role == 'SUPERVISOR' %}
+        <div class="nav-section">Planning</div>
+        <a href="{% url 'team_layout_list' %}"><i class="bi bi-diagram-3"></i> Team Layout</a>
+        <a href="{% url 'allocation_list' %}"><i class="bi bi-calendar-check"></i> Allocation</a>
+        <a href="{% url 'order_list' %}"><i class="bi bi-box-seam"></i> Orders</a>
+        {% endif %}
+
+        <div class="nav-section">Production</div>
+        <a href="{% url 'my_output_list' %}"><i class="bi bi-pencil-square"></i> Output Log</a>
+        <a href="{% url 'downtime_list' %}"><i class="bi bi-cup-hot"></i> Downtime Log</a>
+        {% if user.role == 'QC' or user.role == 'ADMIN' %}
+        <a href="{% url 'qc_pending_list' %}"><i class="bi bi-clipboard-check"></i> QC Pending</a>
+        {% endif %}
+
+        {% if user.role == 'QC' or user.role == 'ADMIN' %}
+        <div class="nav-section">Quality</div>
+        <a href="{% url 'initial_qc_list' %}"><i class="bi bi-search"></i> Initial QC</a>
+        <a href="{% url 'final_qc_list' %}"><i class="bi bi-box-seam"></i> Final QC</a>
+        {% endif %}
+
+        {% if user.role == 'ADMIN' or user.role == 'SUPERVISOR' or user.role == 'QC' %}
+        <div class="nav-section">Reports</div>
+        <a href="{% url 'operator_performance_list' %}"><i class="bi bi-trophy"></i> Operator Performance</a>
+        <a href="{% url 'team_performance' %}"><i class="bi bi-people"></i> Team Performance</a>
+        <a href="{% url 'order_quality' %}"><i class="bi bi-clipboard-data"></i> Order Quality</a>
+        {% endif %}
+
+        {% if user.role == 'ADMIN' %}
+        <div class="nav-section">System</div>
+        <a href="/admin/" target="_blank"><i class="bi bi-shield-lock"></i> Django Admin</a>
+        {% endif %}
+    </nav>
+</aside>
+
+<!-- OVERLAY (Mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content" id="mainContent">
+    <div class="topbar">
+        <div class="topbar-left">
+            <button class="hamburger-btn" onclick="toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
+            <h5>{% block page_title %}PPC System{% endblock %}</h5>
+        </div>
+        <form method="post" action="{% url 'logout' %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </button>
+        </form>
+    </div>
+
+    <div class="content-area">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+</div>
+
+{% else %}
+{% block public_content %}{% endblock %}
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const main = document.getElementById('mainContent');
+
+    // Mobile (chhoti screen)
+    if (window.innerWidth < 992) {
+        sidebar.classList.toggle('show');
+        overlay.classList.toggle('show');
+    } else {
+        // Desktop (badi screen) — collapse/expand
+        sidebar.classList.toggle('collapsed');
+        main.classList.toggle('expanded');
+    }
+}
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

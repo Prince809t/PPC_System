@@ -1,0 +1,15 @@
+{% extends "admin/base.html" %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'dashboard' %}">
+        <i class="bi bi-gear-fill"></i> PPC System Admin
+    </a>
+</h1>
+{% endblock %}
+
+{% block nav-global %}
+<a href="{% url 'dashboard' %}" class="btn btn-sm btn-light" style="margin-left:20px;">
+    ← Wapas PPC Dashboard
+</a>
+{% endblock %}

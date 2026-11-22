@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% block title %}Operator Dashboard — PPC System{% endblock %}
+{% block page_title %}Operator Dashboard{% endblock %}
+
+{% block content %}
+
+{% if no_profile %}
+    <!-- No Profile Case -->
+    <div class="card">
+        <div class="card-body">
+            <div class="empty-state">
+                <i class="bi bi-person-x"></i>
+                <h5>Operator Profile Link Nahi Hua</h5>
+                <p class="text-muted">
+                    Tumhara user account kisi operator profile se link nahi hua. Admin se contact karo.
+                </p>
+                <a href="{% url 'dashboard' %}" class="btn btn-primary mt-2">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </a>
+            </div>
+        </div>
+    </div>
+{% else %}
+
+    <!-- Welcome Banner -->
+    <div class="card" style="background:linear-gradient(135deg,#0dcaf0 0%,#0aa2c0 100%);color:white;">
+        <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-1"><i class="bi bi-person-fill-gear"></i> Welcome, {{ user.username }}!</h4>
+                <p class="mb-0" style="opacity:0.9;font-size:0.9rem;">
+                    {{ operator.full_name }} ({{ operator.employee_code }})
+                    {% if operator.team %} — {{ operator.team.name }}{% endif %}
+                </p>
+            </div>
+            <a href="{% url 'output_create' %}" class="btn btn-light btn-sm">
+                <i class="bi bi-plus-circle"></i> Naya Output
+            </a>
+        </div>
+    </div>
+
+    <!-- STATS ROW -->
+    <div class="row g-3">
+        <div class="col-md-3 col-6">
+            <div class="card stat-card">
+                <i class="bi bi-check-circle-fill" style="color:#0dcaf0;"></i>
+                <h3>{{ today_output }}</h3>
+                <small>Aaj Ka Output</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card stat-card">
+                <i class="bi bi-bullseye" style="color:#0dcaf0;"></i>
+                <h3>{{ planned_per_day }}</h3>
+                <small>Aaj Ka Target</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card stat-card">
+                <i class="bi bi-cup-hot-fill" style="color:#ffc107;"></i>
+                <h3>{{ today_downtime }} <span style="font-size:1rem;">hrs</span></h3>
+                <small>Aaj Ka Downtime</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card stat-card bg-{{ perf.grade_color }} text-white">
+                <i class="bi bi-trophy-fill" style="color:white;"></i>
+                <h3 style="color:white;">{{ perf.score }}</h3>
+                <small style="color:white;opacity:0.9;">My Score — Grade {{ perf.grade }}</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- TARGET PROGRESS -->
+    {% if planned_per_day > 0 %}
+    <div class="card">
+        <div class="card-header" style="background:#eef2f7;">
+            <i class="bi bi-speedometer" style="color:#0dcaf0;"></i> Aaj Ka Target Progress
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-between mb-2">
+                <span><strong>{{ today_output }}</strong> / {{ planned_per_day }} pieces</span>
+                <span>
+                    {% widthratio today_output planned_per_day 100 %}%
+                </span>
+            </div>
+            <div class="progress" style="height:22px;">
+                {% widthratio today_output planned_per_day 100 as pct %}
+                <div class="progress-bar
+                    {% if pct >= 100 %}bg-success
+                    {% elif pct >= 70 %}bg-info
+                    {% elif pct >= 40 %}bg-warning
+                    {% else %}bg-danger{% endif %}"
+                    role="progressbar"
+                    style="width: {% widthratio today_output planned_per_day 100 %}%">
+                    {% widthratio today_output planned_per_day 100 %}%
+                </div>
+            </div>
+            {% if today_output >= planned_per_day %}
+                <div class="alert alert-success mt-3 mb-0 py-2">
+                    <i class="bi bi-check-circle-fill"></i> Shabaash! Aaj ka target achieve ho gaya.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- QUICK ACTIONS -->
+    <div class="card">
+        <div class="card-header" style="background:#eef2f7;">
+            <i class="bi bi-lightning-charge-fill text-warning"></i> Quick Actions
+        </div>
+        <div class="card-body">
+            <div class="row g-2">
+                <div class="col-md-4 col-6">
+                    <a href="{% url 'output_create' %}" class="btn btn-outline-info w-100">
+                        <i class="bi bi-pencil-square"></i> Naya Output
+                    </a>
+                </div>
+                <div class="col-md-4 col-6">
+                    <a href="{% url 'downtime_create' %}" class="btn btn-outline-warning w-100">
+                        <i class="bi bi-cup-hot"></i> Nayi Downtime
+                    </a>
+                </div>
+                <div class="col-md-4 col-12">
+                    <a href="{% url 'my_output_list' %}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-list-check"></i> Mera Output
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MY PERFORMANCE SUMMARY -->
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <i class="bi bi-graph-up"></i> My Performance (Last 30 Days)
+        </div>
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-3 col-6 mb-3">
+                    <small class="text-muted d-block">Total Pieces</small>
+                    <h4 class="mb-0" style="color:#0dcaf0;">{{ perf.total_pieces }}</h4>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <small class="text-muted d-block">Total Defects</small>
+                    <h4 class="mb-0 text-danger">{{ perf.initial_defect_pieces|add:perf.final_defect_pieces }}</h4>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <small class="text-muted d-block">Repeat Faults</small>
+                    <h4 class="mb-0 text-warning">{{ perf.repeat_fault_pieces }}</h4>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <small class="text-muted d-block">Total Downtime</small>
+                    <h4 class="mb-0">{{ perf.total_downtime_hours }} <span style="font-size:0.85rem;">hrs</span></h4>
+                </div>
+            </div>
+            <hr>
+            <div class="row text-center">
+                <div class="col-md-4 col-6">
+                    <small class="text-muted d-block">Initial Faults</small>
+                    <h5>{{ perf.initial_fault_count }}</h5>
+                </div>
+                <div class="col-md-4 col-6">
+                    <small class="text-muted d-block">Final Faults</small>
+                    <h5>{{ perf.final_fault_count }}</h5>
+                </div>
+                <div class="col-md-4 col-12">
+                    <small class="text-muted d-block">Overall Grade</small>
+                    <h4><span class="badge bg-{{ perf.grade_color }}">{{ perf.grade }}</span></h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endif %}
+
+{% endblock %}

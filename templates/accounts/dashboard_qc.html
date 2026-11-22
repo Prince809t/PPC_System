@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% block title %}QC Dashboard — PPC System{% endblock %}
+{% block page_title %}QC Inspector Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Welcome Banner -->
+<div class="card" style="background:linear-gradient(135deg,#ffc107 0%,#e0a800 100%);color:#333;">
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="mb-1"><i class="bi bi-clipboard-check-fill"></i> Welcome, {{ user.username }}!</h4>
+            <p class="mb-0" style="opacity:0.85;font-size:0.9rem;">
+                Quality reports bharo aur faults track karo.
+            </p>
+        </div>
+        <a href="{% url 'qc_pending_list' %}" class="btn btn-dark btn-sm">
+            <i class="bi bi-clipboard-check"></i> QC Pending
+        </a>
+    </div>
+</div>
+
+<!-- STATS ROW -->
+<div class="row g-3">
+    <div class="col-md-3 col-6">
+        <div class="card stat-card">
+            <i class="bi bi-hourglass-split" style="color:#dc3545;"></i>
+            <h3 class="text-danger">{{ pending_qc }}</h3>
+            <small>Pending QC Checks</small>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card stat-card">
+            <i class="bi bi-search" style="color:#ffc107;"></i>
+            <h3>{{ total_initial }}</h3>
+            <small>Initial Reports (PPC-04)</small>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card stat-card">
+            <i class="bi bi-box-seam" style="color:#ffc107;"></i>
+            <h3>{{ total_final }}</h3>
+            <small>Final Reports (PPC-05)</small>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card stat-card">
+            <i class="bi bi-exclamation-triangle-fill" style="color:#dc3545;"></i>
+            <h3 class="text-danger">{{ overall_defect_rate }}%</h3>
+            <small>Overall Defect Rate</small>
+        </div>
+    </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="card">
+    <div class="card-header" style="background:#eef2f7;">
+        <i class="bi bi-lightning-charge-fill text-warning"></i> Quick Actions
+    </div>
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md-3 col-6">
+                <a href="{% url 'qc_pending_list' %}" class="btn btn-outline-warning w-100 text-dark">
+                    <i class="bi bi-clipboard-check"></i> QC Pending
+                </a>
+            </div>
+            <div class="col-md-3 col-6">
+                <a href="{% url 'initial_qc_create' %}" class="btn btn-outline-warning w-100 text-dark">
+                    <i class="bi bi-plus-circle"></i> Nayi Initial QC
+                </a>
+            </div>
+            <div class="col-md-3 col-6">
+                <a href="{% url 'final_qc_create' %}" class="btn btn-outline-warning w-100 text-dark">
+                    <i class="bi bi-plus-circle"></i> Nayi Final QC
+                </a>
+            </div>
+            <div class="col-md-3 col-6">
+                <a href="{% url 'order_quality' %}" class="btn btn-outline-warning w-100 text-dark">
+                    <i class="bi bi-clipboard-data"></i> Order Quality
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TOP FAULT CODES CHART -->
+<div class="card">
+    <div class="card-header bg-warning text-dark">
+        <i class="bi bi-bar-chart-fill"></i> Top 5 Fault Codes
+    </div>
+    <div class="card-body">
+        {% if fault_labels %}
+        <canvas id="faultChart" height="120"></canvas>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-bar-chart"></i>
+            <p class="mb-0">Abhi koi fault data nahi. Initial QC report bharo.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- RECENT REPORTS SECTION -->
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <i class="bi bi-search"></i> Recent Initial QC Reports
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ORDER</th>
+                                <th class="text-end">CHECKED</th>
+                                <th class="text-end">DEFECTIVE</th>
+                                <th>DATE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in recent_initial %}
+                            <tr>
+                                <td><strong>{{ r.order.order_no }}</strong></td>
+                                <td class="text-end">{{ r.total_qty_checked }}</td>
+                                <td class="text-end text-danger">{{ r.total_qty_defective }}</td>
+                                <td>{{ r.date }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center text-muted py-3">Koi report nahi.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <i class="bi bi-box-seam"></i> Recent Final QC Reports
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ORDER</th>
+                                <th class="text-end">DEFECTIVE</th>
+                                <th class="text-end">REWORK HRS</th>
+                                <th>DATE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in recent_final %}
+                            <tr>
+                                <td><strong>{{ r.order.order_no }}</strong></td>
+                                <td class="text-end text-danger">{{ r.qty_defective_at_final }}</td>
+                                <td class="text-end">
+                                    <span class="badge bg-dark">{{ r.total_rework_hours }} hrs</span>
+                                </td>
+                                <td>{{ r.date }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center text-muted py-3">Koi report nahi.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if fault_labels %}
+<script>
+const ctx = document.getElementById('faultChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: [{% for l in fault_labels %}'{{ l }}',{% endfor %}],
+        datasets: [{
+            label: 'Total Qty',
+            data: [{% for d in fault_data %}{{ d }},{% endfor %}],
+            backgroundColor: '#ffc107',
+            borderColor: '#e0a800',
+            borderWidth: 1,
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+</script>
+{% endif %}
+
+{% endblock %}

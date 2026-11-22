@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}Nayi Allocation — PPC System{% endblock %}
+{% block page_title %}Nayi Allocation (PPC-03){% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="card">
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-1"><i class="bi bi-plus-circle text-primary"></i> Nayi Allocation</h5>
+            <p class="mb-0 text-muted" style="font-size:0.88rem;">
+                Aaj kis operator ko kis order pe lagana hai.
+            </p>
+        </div>
+        <a href="{% url 'allocation_list' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+
+    <!-- SECTION 1: Basic Info -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-1-circle-fill"></i> Basic Information
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3 col-6">
+                    <label class="form-label">Date *</label>
+                    <input type="date" name="date" class="form-control" value="{{ today }}" required>
+                </div>
+                <div class="col-md-3 col-6">
+                    <label class="form-label">Team *</label>
+                    <select name="team" class="form-select" required>
+                        <option value="">-- Team chuno --</option>
+                        {% for t in teams %}
+                        <option value="{{ t.id }}">{{ t.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 col-12">
+                    <label class="form-label">Operator *</label>
+                    <select name="operator" class="form-select" required>
+                        <option value="">-- Operator chuno --</option>
+                        {% for o in operators %}
+                        <option value="{{ o.id }}">{{ o.full_name }} ({{ o.team.name|default:"No Team" }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 col-12">
+                    <label class="form-label">ON / OFFLINE *</label>
+                    <select name="line_type" class="form-select" required>
+                        <option value="ONLINE">Online (Sewing)</option>
+                        <option value="OFFLINE">Offline (Finishing)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 2: Kaam ki Detail -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-2-circle-fill"></i> Kaam Ki Detail
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Order / Sample No. *</label>
+                    <select name="order" class="form-select" required>
+                        <option value="">-- Order chuno --</option>
+                        {% for o in orders %}
+                        <option value="{{ o.id }}">{{ o.order_no }} — {{ o.style }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">
+                        Order nahi hai? <a href="{% url 'order_create' %}">Naya Order banao</a>
+                    </small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Operation</label>
+                    <select name="operation" class="form-select">
+                        <option value="">-- Operation chuno --</option>
+                        {% for op in operations %}
+                        <option value="{{ op.id }}">{{ op.name }} ({{ op.get_section_display }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 3: Target & Hours -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-3-circle-fill"></i> Target & Hours
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4 col-6">
+                    <label class="form-label">Target / Hour *</label>
+                    <input type="number" name="target_per_hour" class="form-control" value="0" min="0" required>
+                </div>
+                <div class="col-md-4 col-6">
+                    <label class="form-label">Hours *</label>
+                    <input type="number" step="0.5" name="hours" class="form-control" value="8" min="0" required>
+                </div>
+                <div class="col-md-4 col-12">
+                    <label class="form-label">Planned Output</label>
+                    <input type="text" class="form-control" value="Auto (Target/hr × Hours)" disabled style="background:#f8f9ff;">
+                    <small class="text-muted">Save ke baad automatic calculate hoga</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="card">
+        <div class="card-body d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-save"></i> Save Karo
+            </button>
+            <a href="{% url 'allocation_list' %}" class="btn btn-secondary btn-lg">Cancel</a>
+        </div>
+    </div>
+
+</form>
+
+{% endblock %}
